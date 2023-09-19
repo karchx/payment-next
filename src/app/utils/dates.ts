@@ -7,5 +7,5 @@ export function formatDate(date: Date) {
     padTo2Digits(date.getDate()),
     padTo2Digits(date.getMonth() + 1),
     date.getFullYear(),
-  ].join("/");
+  ].join("-");
 }

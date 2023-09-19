@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { PayloadRequest, PaymentRequest } from "../interfaces/paymentRequest";
 import { formatDate } from "../utils/dates";
+import ApiService from "../services/api";
 
 function PaymentForm() {
   const [formData, setFormData] = useState<PaymentRequest>({
@@ -18,7 +19,7 @@ function PaymentForm() {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e: any) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     const payload: PayloadRequest = {
       payment_request: {
@@ -26,7 +27,8 @@ function PaymentForm() {
         first_due_date: formatDate(new Date(formData.first_due_date)),
       },
     };
-    console.log(payload);
+    const response = await ApiService.paymentRequest(payload);
+    console.log(response)
     setShowModal(true);
   };
 
