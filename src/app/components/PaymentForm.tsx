@@ -80,6 +80,11 @@ function PaymentForm() {
   const copyToClipboard = () => {
     navigator.clipboard.writeText(checkoutUrl);
     setCopied(true);
+    toast("Copiado", {
+      hideProgressBar: true,
+      autoClose: 2000,
+      type: "success",
+    });
   };
 
   return (
