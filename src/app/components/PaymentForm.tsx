@@ -3,6 +3,8 @@ import { useState } from "react";
 import { PayloadRequest, PaymentRequest } from "../interfaces/paymentRequest";
 import { formatDate } from "../utils/dates";
 import ApiService from "../services/api";
+import DialogEmail from "./dialogs/DialogEmail";
+import DialogCopy from "./dialogs/DialogCopyCheckout";
 
 function PaymentForm() {
   const [formData, setFormData] = useState<PaymentRequest>({
@@ -13,6 +15,9 @@ function PaymentForm() {
   });
 
   const [showModal, setShowModal] = useState(false);
+  const [showModalCopy, setShowModalCopy] = useState(false);
+  const [checkoutUrl, setCheckoutUrl] = useState("");
+  const [copied, setCopied] = useState(false);
 
   const handleChange = (e: any) => {
     const { name, value } = e.target;
@@ -28,12 +33,24 @@ function PaymentForm() {
       },
     };
     const response = await ApiService.paymentRequest(payload);
-    console.log(response)
+    if (response.status === 201) {
+      setCheckoutUrl(response.data.checkout_url);
+    }
     setShowModal(true);
   };
 
   const closeModal = () => {
     setShowModal(false);
+    setShowModalCopy(true);
+  };
+
+  const sendEmail = () => {
+    setShowModal(false);
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(checkoutUrl);
+    setCopied(true);
   };
 
   return (
@@ -94,33 +111,18 @@ function PaymentForm() {
           </form>
 
           {showModal && (
-            <div className="fixed inset-0 flex items-center justify-center z-50">
-              {/* Superposición semi-transparente */}
-              <div className="fixed inset-0 bg-black opacity-50"></div>
-
-              <div className="transition-opacity duration-300 ease-in-out opacity-100 transform scale-100 bg-white p-8 rounded shadow-lg">
-                <h2 className="text-lg font-semibold">
-                  ¿Enviar enlace de cobro por correo electrónico?
-                </h2>
-                <div className="mt-4 flex justify-end">
-                  <button
-                    className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 mr-2"
-                    onClick={closeModal}
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
-                    onClick={() => {
-                      // Aquí puedes implementar la lógica para enviar el enlace de cobro por correo electrónico.
-                      closeModal();
-                    }}
-                  >
-                    Enviar
-                  </button>
-                </div>
-              </div>
-            </div>
+            <DialogEmail closeModal={closeModal} sendEmail={sendEmail} />
+          )}
+          {showModalCopy && (
+            <DialogCopy
+              checkoutUrl={checkoutUrl}
+              copyToClipboard={copyToClipboard}
+              closeModalCopy={() => {
+                setShowModalCopy(false);
+                setCopied(false);
+              }}
+              copied={copied}
+            />
           )}
         </div>
       </div>
