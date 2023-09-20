@@ -1,10 +1,15 @@
 "use client";
 import { useState } from "react";
-import { PayloadRequest, PaymentRequest } from "../interfaces/paymentRequest";
+import {
+  Errors,
+  PayloadRequest,
+  PaymentRequest,
+} from "../interfaces/paymentRequest";
 import { formatDate } from "../utils/dates";
 import ApiService from "../services/api";
 import DialogEmail from "./dialogs/DialogEmail";
 import DialogCopy from "./dialogs/DialogCopyCheckout";
+import { toast } from "react-toastify";
 
 function PaymentForm() {
   const [formData, setFormData] = useState<PaymentRequest>({
@@ -32,11 +37,30 @@ function PaymentForm() {
         first_due_date: formatDate(new Date(formData.first_due_date)),
       },
     };
-    const response = await ApiService.paymentRequest(payload);
-    if (response.status === 201) {
-      setCheckoutUrl(response.data.checkout_url);
+
+    try {
+      const response = await ApiService.paymentRequest(payload);
+      if (response.status === 201) {
+        setCheckoutUrl(response.data.checkout_url);
+      }
+      setShowModal(true);
+    } catch (e: any) {
+      const errors = e.response.data as { errors: Errors };
+      const errorsObjects = errors.errors.children;
+
+      for (const error in errorsObjects) {
+        const errorKey = (errorsObjects as any)[error] as { errors: string[] };
+        if (Object.keys(errorKey).length > 0) {
+          errorKey.errors.forEach((e) => {
+            toast(e, {
+              hideProgressBar: true,
+              autoClose: 2000,
+              type: "error",
+            });
+          });
+        }
+      }
     }
-    setShowModal(true);
   };
 
   const closeModal = () => {
@@ -55,8 +79,8 @@ function PaymentForm() {
 
   return (
     <div className="relative">
-      <div className="flex items-center justify-center h-screen">
-        <div className="w-full max-w-md">
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-full max-w-md p-4">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="description">Concepto del Pago</label>
@@ -72,7 +96,7 @@ function PaymentForm() {
             <div>
               <label htmlFor="first_due_date">Fecha de Vencimiento</label>
               <input
-                type="date" // Cambiamos el tipo a "date"
+                type="date"
                 name="first_due_date"
                 value={formData.first_due_date}
                 onChange={handleChange}
