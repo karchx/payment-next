@@ -70,6 +70,11 @@ function PaymentForm() {
 
   const sendEmail = () => {
     setShowModal(false);
+    toast("Email enviado", {
+      hideProgressBar: true,
+      autoClose: 2000,
+      type: "success",
+    });
   };
 
   const copyToClipboard = () => {
